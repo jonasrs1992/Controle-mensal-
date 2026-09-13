@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
+  <meta name="description" content="Controle mensal de funcionários, diárias e horas extras." />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Controle Mensal" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+  <title>Controle Mensal</title>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#111827; --card2:#172033; --line:#263248;
+      --text:#f8fafc; --muted:#9ca3af; --blue:#2563eb; --blue2:#1d4ed8;
+      --green:#16a34a; --green2:#15803d; --shadow:#050914;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .header{
+      background:linear-gradient(180deg,#1d4ed8,#1e40af);
+      padding:22px 18px 18px;border-radius:0 0 24px 24px;box-shadow:0 6px 0 #102965
+    }
+    .header h1{font-size:22px;margin:0 0 4px}.header small{color:#dbeafe}
+    .wrap{max-width:720px;margin:auto;padding:16px 14px 30px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin:14px 0;box-shadow:0 5px 0 var(--shadow)}
+    .tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+    .tab{flex:0 0 auto;border:1px solid var(--line);background:#182236;color:var(--text);padding:10px 14px;border-radius:999px;font-weight:700;cursor:pointer}
+    .tab.active{background:var(--blue);border-color:#3b82f6;box-shadow:0 4px 0 #163a88}
+    .toprow,.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .person-name{font-size:20px;font-weight:800}.daily{color:var(--muted);margin-top:4px}
+    .trash{width:44px;height:44px;border:1px solid #5b2630;background:#32171d;color:#fecaca;border-radius:12px;font-size:18px;cursor:pointer}
+    .day{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px}
+    .day-main{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
+    .day label{font-weight:700}.check{width:22px;height:22px;accent-color:var(--blue)}
+    .extra-wrap{margin-top:11px}.extra-title{display:flex;justify-content:space-between;color:#d1d5db;font-size:14px;margin-bottom:7px}
+    input[type="range"]{width:100%;accent-color:#60a5fa}
+    input[type="text"],input[type="number"],input[type="month"]{
+      width:100%;padding:12px 13px;margin-top:9px;background:#0f172a;color:var(--text);
+      border:1px solid #334155;border-radius:12px;outline:none;font-size:16px;color-scheme:dark
+    }
+    .btn{width:100%;padding:13px 14px;margin-top:12px;border:0;border-radius:14px;color:white;font-weight:800;font-size:16px;cursor:pointer}
+    .btn:active{transform:translateY(3px);box-shadow:none}.blue{background:var(--blue);box-shadow:0 5px 0 var(--blue2)}
+    .green{background:var(--green);box-shadow:0 5px 0 var(--green2)}
+    .total{color:#4ade80;font-size:23px;font-weight:900;white-space:nowrap}
+    .section-title{font-size:15px;font-weight:800;margin-bottom:4px}.hint{color:var(--muted);font-size:13px;margin-top:5px}
+    .empty{color:var(--muted);text-align:center;padding:18px 4px}.rate{color:#93c5fd;font-size:13px;margin-top:4px}
+    .month-label{font-size:13px;color:var(--muted);margin-bottom:2px}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💰 Controle Mensal</h1>
+    <small>Pagamentos dos funcionários • funciona offline</small>
+  </div>
+
+  <main class="wrap">
+    <section id="installCard" class="card" style="display:none">
+      <div class="section-title">Instalar no celular</div>
+      <div class="hint">Instale o Controle Mensal na tela inicial e use como aplicativo.</div>
+      <button id="installBtn" class="btn green">📲 Instalar aplicativo</button>
+    </section>
+
+    <section class="card">
+      <div class="section-title">Mês do controle</div>
+      <input id="monthPicker" type="month" />
+      <div class="hint">Cada mês guarda seus próprios dias trabalhados e horas extras.</div>
+    </section>
+
+    <div id="tabs" class="tabs"></div>
+
+    <section id="personCard" class="card">
+      <div class="toprow">
+        <div>
+          <div id="personName" class="person-name"></div>
+          <div id="dailyValue" class="daily"></div>
+          <div id="overtimeValue" class="rate"></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="editBtn" class="trash" title="Editar funcionário">✏️</button>
+          <button id="deleteBtn" class="trash" title="Excluir funcionário">🗑️</button>
+        </div>
+      </div>
+
+      <div id="days"></div>
+
+      <div class="row" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
+        <strong>Total do mês</strong>
+        <span id="personTotal" class="total">R$ 0,00</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div id="formTitle" class="section-title">Novo funcionário</div>
+      <input id="newName" type="text" placeholder="Nome" autocomplete="off" />
+      <input id="newDaily" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Valor da diária" />
+      <input id="newOvertime" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Valor da hora extra" />
+      <button id="addBtn" class="btn blue">+ Cadastrar</button>
+      <button id="cancelEditBtn" class="btn" style="display:none;background:#475569">Cancelar edição</button>
+      <div class="hint">Nome, diária e hora extra ficam salvos para cada funcionário.</div>
+    </section>
+
+    <section class="card">
+      <div class="row">
+        <strong>Total geral do mês</strong>
+        <span id="generalTotal" class="total">R$ 0,00</span>
+      </div>
+      <button id="payBtn" class="btn green">💵 PAGAR MÊS</button>
+      <div class="hint">Ao confirmar, zera somente o mês selecionado. Os funcionários continuam cadastrados.</div>
+    </section>
+  </main>
+
+<script>
+  const STORAGE_KEY = 'controle_mensal_v1';
+  const OLD_STORAGE_KEY = 'controle_semanal_v3';
+  let editingIndex = null;
+
+  const $ = id => document.getElementById(id);
+  const money = value => Number(value).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+
+  function currentMonthKey(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  function daysInMonth(monthKey){
+    const [y,m] = monthKey.split('-').map(Number);
+    return new Date(y,m,0).getDate();
+  }
+
+  function weekdayName(monthKey, day){
+    const [y,m] = monthKey.split('-').map(Number);
+    return new Intl.DateTimeFormat('pt-BR',{weekday:'short'}).format(new Date(y,m-1,day)).replace('.','');
+  }
+
+  function makeEmployee(name,daily,overtimeRate=40){
+    return {name,daily:Number(daily)||0,overtimeRate:Number(overtimeRate)||0,months:{}};
+  }
+
+  let employees = [];
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(Array.isArray(saved)) employees = saved;
+  }catch(e){}
+
+  // Se for a primeira vez na versão mensal, reaproveita os funcionários da versão semanal.
+  if(!employees.length){
+    try{
+      const old = JSON.parse(localStorage.getItem(OLD_STORAGE_KEY));
+      if(Array.isArray(old) && old.length){
+        employees = old.map(emp => makeEmployee(emp.name,emp.daily,Number.isFinite(Number(emp.overtimeRate)) ? Number(emp.overtimeRate) : 40));
+      }
+    }catch(e){}
+  }
+
+  if(!employees.length){
+    employees = [
+      makeEmployee('Seu Roberto',370,40),
+      makeEmployee('Raissa',130,40),
+      makeEmployee('Nathalia',130,40),
+      makeEmployee('Jonas',250,40)
+    ];
+  }
+
+  employees = employees.map(emp => ({
+    ...emp,
+    daily:Number(emp.daily)||0,
+    overtimeRate:Number.isFinite(Number(emp.overtimeRate)) ? Number(emp.overtimeRate) : 40,
+    months: emp.months && typeof emp.months === 'object' ? emp.months : {}
+  }));
+
+  let selected = 0;
+  let selectedMonth = currentMonthKey();
+  $('monthPicker').value = selectedMonth;
+
+  function ensureMonth(emp){
+    const count = daysInMonth(selectedMonth);
+    if(!emp.months[selectedMonth]){
+      emp.months[selectedMonth] = {days:Array(count).fill(false),hours:Array(count).fill(0)};
+    }
+    const data = emp.months[selectedMonth];
+    if(!Array.isArray(data.days)) data.days = [];
+    if(!Array.isArray(data.hours)) data.hours = [];
+    while(data.days.length < count) data.days.push(false);
+    while(data.hours.length < count) data.hours.push(0);
+    data.days = data.days.slice(0,count);
+    data.hours = data.hours.slice(0,count);
+    return data;
+  }
+
+  function save(){
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(employees));
+  }
+
+  function total(emp){
+    const data = ensureMonth(emp);
+    const dailyTotal = data.days.filter(Boolean).length * Number(emp.daily||0);
+    const overtimeTotal = data.hours.reduce((sum,h)=>sum+Number(h||0),0) * Number(emp.overtimeRate||0);
+    return dailyTotal + overtimeTotal;
+  }
+
+  function updateTotals(){
+    if(!employees.length) return;
+    $('personTotal').textContent = money(total(employees[selected]));
+    $('generalTotal').textContent = money(employees.reduce((sum,e)=>sum+total(e),0));
+  }
+
+  function renderTabs(){
+    const tabs = $('tabs');
+    tabs.innerHTML = '';
+    employees.forEach((emp,index)=>{
+      const btn = document.createElement('button');
+      btn.className = 'tab' + (index===selected?' active':'');
+      btn.textContent = emp.name;
+      btn.onclick = ()=>{selected=index;render();};
+      tabs.appendChild(btn);
+    });
+  }
+
+  function renderDays(emp){
+    const data = ensureMonth(emp);
+    const box = $('days');
+    box.innerHTML = '';
+
+    data.days.forEach((worked,index)=>{
+      const dayNumber = index + 1;
+      const card = document.createElement('div');
+      card.className = 'day';
+
+      const main = document.createElement('div');
+      main.className = 'day-main';
+
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.className = 'check';
+      check.checked = !!worked;
+      check.onchange = ()=>{
+        data.days[index] = check.checked;
+        save();
+        updateTotals();
+      };
+
+      const label = document.createElement('label');
+      label.textContent = `Dia ${dayNumber} • ${weekdayName(selectedMonth,dayNumber)}`;
+
+      const hoursBadge = document.createElement('strong');
+      hoursBadge.textContent = `${data.hours[index] || 0}h extra`;
+
+      main.append(check,label,hoursBadge);
+
+      const extraWrap = document.createElement('div');
+      extraWrap.className = 'extra-wrap';
+
+      const extraTitle = document.createElement('div');
+      extraTitle.className = 'extra-title';
+      extraTitle.innerHTML = `<span>Horas extras</span><span>${money((data.hours[index]||0)*Number(emp.overtimeRate||0))}</span>`;
+
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.min = '0';
+      slider.max = '12';
+      slider.step = '1';
+      slider.value = data.hours[index] || 0;
+
+      // Mantido: só muda após um arraste real de pelo menos 15 pixels.
+      // Toques simples no trilho são ignorados.
+      let dragStartX = null;
+      let dragStartValue = Number(slider.value);
+      let draggingExtra = false;
+
+      const beginExtraDrag = (clientX) => {
+        dragStartX = clientX;
+        dragStartValue = Number(slider.value);
+        draggingExtra = false;
+      };
+
+      const moveExtraDrag = (clientX) => {
+        if (dragStartX === null) return;
+        const dx = clientX - dragStartX;
+        if (!draggingExtra && Math.abs(dx) < 15) return;
+        draggingExtra = true;
+
+        const rect = slider.getBoundingClientRect();
+        const usableWidth = Math.max(rect.width,1);
+        const min = Number(slider.min);
+        const max = Number(slider.max);
+        const step = Number(slider.step)||1;
+        const delta = (dx/usableWidth)*(max-min);
+
+        let value = dragStartValue + delta;
+        value = Math.round(value/step)*step;
+        value = Math.max(min,Math.min(max,value));
+
+        slider.value = value;
+        data.hours[index] = value;
+        hoursBadge.textContent = `${value}h extra`;
+        extraTitle.children[1].textContent = money(value*Number(emp.overtimeRate||0));
+        updateTotals();
+      };
+
+      const endExtraDrag = () => {
+        if(dragStartX===null) return;
+        if(draggingExtra) save();
+        else slider.value = data.hours[index] || 0;
+        dragStartX = null;
+        draggingExtra = false;
+      };
+
+      slider.addEventListener('pointerdown',(e)=>{
+        beginExtraDrag(e.clientX);
+        slider.setPointerCapture?.(e.pointerId);
+        e.preventDefault();
+      });
+      slider.addEventListener('pointermove',(e)=>{
+        if(dragStartX===null) return;
+        moveExtraDrag(e.clientX);
+        e.preventDefault();
+      });
+      slider.addEventListener('pointerup',(e)=>{
+        endExtraDrag();
+        slider.releasePointerCapture?.(e.pointerId);
+        e.preventDefault();
+      });
+      slider.addEventListener('pointercancel',endExtraDrag);
+      slider.addEventListener('click',(e)=>e.preventDefault());
+
+      extraWrap.append(extraTitle,slider);
+      card.append(main,extraWrap);
+      box.appendChild(card);
+    });
+  }
+
+  function render(){
+    renderTabs();
+    if(!employees.length){
+      $('personCard').innerHTML = '<div class="empty">Nenhum funcionário cadastrado.</div>';
+      $('generalTotal').textContent = money(0);
+      return;
+    }
+    if(selected>=employees.length) selected=employees.length-1;
+
+    const emp = employees[selected];
+    $('personName').textContent = emp.name;
+    $('dailyValue').textContent = `${money(emp.daily)} / dia`;
+    $('overtimeValue').textContent = `Hora extra: ${money(emp.overtimeRate||0)}/h`;
+    renderDays(emp);
+    updateTotals();
+  }
+
+  function resetForm(){
+    editingIndex = null;
+    $('formTitle').textContent = 'Novo funcionário';
+    $('addBtn').textContent = '+ Cadastrar';
+    $('cancelEditBtn').style.display = 'none';
+    $('newName').value = '';
+    $('newDaily').value = '';
+    $('newOvertime').value = '';
+  }
+
+  $('monthPicker').onchange = ()=>{
+    if(!$('monthPicker').value) return;
+    selectedMonth = $('monthPicker').value;
+    render();
+  };
+
+  $('addBtn').onclick = ()=>{
+    const name = $('newName').value.trim();
+    const daily = Number(String($('newDaily').value).replace(',','.'));
+    const overtimeRate = Number(String($('newOvertime').value).replace(',','.'));
+
+    if(!name){alert('Digite o nome do funcionário.');return;}
+    if(!(daily>0)){alert('Digite um valor válido para a diária.');return;}
+    if(!(overtimeRate>=0)){alert('Digite um valor válido para a hora extra.');return;}
+
+    if(editingIndex===null){
+      employees.push(makeEmployee(name,daily,overtimeRate));
+      selected = employees.length-1;
+    }else{
+      const emp = employees[editingIndex];
+      emp.name = name;
+      emp.daily = daily;
+      emp.overtimeRate = overtimeRate;
+      selected = editingIndex;
+    }
+    save();
+    resetForm();
+    render();
+  };
+
+  $('editBtn').onclick = ()=>{
+    if(!employees.length) return;
+    const emp = employees[selected];
+    editingIndex = selected;
+    $('formTitle').textContent = 'Editar funcionário';
+    $('addBtn').textContent = 'Salvar alterações';
+    $('cancelEditBtn').style.display = 'block';
+    $('newName').value = emp.name;
+    $('newDaily').value = emp.daily;
+    $('newOvertime').value = emp.overtimeRate ?? 40;
+    $('newName').focus();
+  };
+
+  $('cancelEditBtn').onclick = resetForm;
+
+  $('deleteBtn').onclick = ()=>{
+    if(!employees.length) return;
+    const emp = employees[selected];
+    if(!confirm(`Excluir o cadastro de ${emp.name}?`)) return;
+    employees.splice(selected,1);
+    if(selected>=employees.length) selected=Math.max(0,employees.length-1);
+    save();
+    location.reload();
+  };
+
+  $('payBtn').onclick = ()=>{
+    if(!employees.length) return;
+    const value = employees.reduce((sum,e)=>sum+total(e),0);
+    const label = new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(
+      new Date(Number(selectedMonth.slice(0,4)),Number(selectedMonth.slice(5,7))-1,1)
+    );
+
+    if(!confirm(`Confirmar pagamento de ${money(value)} referente a ${label} e zerar somente esse mês?`)) return;
+
+    employees.forEach(emp=>{
+      const count = daysInMonth(selectedMonth);
+      emp.months[selectedMonth] = {days:Array(count).fill(false),hours:Array(count).fill(0)};
+    });
+
+    save();
+    render();
+    alert(`Pagamento de ${label} confirmado. O mês foi zerado.`);
+  };
+
+
+  // Instalação do PWA pelo navegador.
+  let deferredInstallPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    const card = $('installCard');
+    if (card) card.style.display = 'block';
+  });
+
+  const installBtn = $('installBtn');
+  if (installBtn) {
+    installBtn.onclick = async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      $('installCard').style.display = 'none';
+    };
+  }
+
+  window.addEventListener('appinstalled', () => {
+    const card = $('installCard');
+    if (card) card.style.display = 'none';
+  });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js').catch((err) => {
+        console.warn('Service Worker não registrado:', err);
+      });
+    });
+  }
+
+  save();
+  render();
+</script>
+</body>
+</html>
