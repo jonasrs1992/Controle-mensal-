@@ -3,16 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b1220" />
-  <meta name="description" content="Controle mensal de funcionários, diárias e horas extras." />
+  <meta name="theme-color" content="#1d4ed8" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Controle Mensal" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-  <title>Controle Mensal</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Controle Funcionários" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>Controle de Funcionários</title>
   <style>
     :root{
       --bg:#0b1220; --card:#111827; --card2:#172033; --line:#263248;
@@ -28,9 +26,16 @@
     .header h1{font-size:22px;margin:0 0 4px}.header small{color:#dbeafe}
     .wrap{max-width:720px;margin:auto;padding:16px 14px 30px}
     .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin:14px 0;box-shadow:0 5px 0 var(--shadow)}
-    .tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+    .tabs{display:flex;gap:8px;overflow-x:auto;padding:10px 14px;scrollbar-width:none;position:sticky;top:0;z-index:1000;background:var(--bg);margin-left:-14px;margin-right:-14px;box-shadow:0 5px 10px rgba(5,9,20,.55)}.tabs::-webkit-scrollbar{display:none}
     .tab{flex:0 0 auto;border:1px solid var(--line);background:#182236;color:var(--text);padding:10px 14px;border-radius:999px;font-weight:700;cursor:pointer}
     .tab.active{background:var(--blue);border-color:#3b82f6;box-shadow:0 4px 0 #163a88}
+    .mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .mode-btn{border:1px solid var(--line);background:#182236;color:var(--text);padding:12px;border-radius:14px;font-weight:800}
+    .mode-btn.active{background:var(--blue);border-color:#3b82f6;box-shadow:0 4px 0 #163a88}
+    .week-nav{display:grid;grid-template-columns:48px 1fr 48px;gap:10px;align-items:center}
+    .nav-btn{height:44px;border:0;border-radius:12px;background:#24324a;color:white;font-size:22px;font-weight:900}
+    .week-label{text-align:center;font-weight:800;line-height:1.35}
+    .hidden{display:none!important}
     .toprow,.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .person-name{font-size:20px;font-weight:800}.daily{color:var(--muted);margin-top:4px}
     .trash{width:44px;height:44px;border:1px solid #5b2630;background:#32171d;color:#fecaca;border-radius:12px;font-size:18px;cursor:pointer}
@@ -50,6 +55,47 @@
     .section-title{font-size:15px;font-weight:800;margin-bottom:4px}.hint{color:var(--muted);font-size:13px;margin-top:5px}
     .empty{color:var(--muted);text-align:center;padding:18px 4px}.rate{color:#93c5fd;font-size:13px;margin-top:4px}
     .month-label{font-size:13px;color:var(--muted);margin-bottom:2px}
+    .history-item{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}.history-head{display:flex;justify-content:space-between;gap:8px;font-weight:800}.history-meta{color:var(--muted);font-size:13px;margin-top:4px}.history-person{display:flex;justify-content:space-between;gap:8px;margin-top:7px;padding-top:7px;border-top:1px solid var(--line)}
+  
+    .history-share{margin-top:12px;padding:12px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;white-space:pre-wrap;font:600 14px/1.55 system-ui,-apple-system,sans-serif;color:#334155}
+    .copy-history-btn{width:100%;margin-top:10px;padding:11px 12px;border:1px solid #cbd5e1;border-radius:11px;background:#fff;color:#334155;font-weight:800;font-size:14px;cursor:pointer}
+    .copy-history-btn:active{transform:translateY(1px)}
+</style>
+
+<style id="luxury-ui-override">
+:root{--bg:#f4f6f8!important;--card:#ffffff!important;--card2:#f8fafc!important;--line:#e2e8f0!important;--text:#172033!important;--muted:#718096!important;--blue:#315f8c!important;--blue2:#244a6e!important;--green:#2f7d67!important;--green2:#235f4f!important;--shadow:rgba(15,23,42,.06)!important}
+*{box-sizing:border-box}
+body{background:linear-gradient(180deg,#f8fafc 0,#f1f4f7 46%,#edf1f5 100%) fixed!important;color:var(--text)!important;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;letter-spacing:.005em}
+.header{background:rgba(255,255,255,.94)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid #e5eaf0!important;border-radius:0 0 26px 26px!important;padding:24px 18px 20px!important;box-shadow:0 12px 35px rgba(15,23,42,.07)!important}
+.header h1{font-size:25px!important;color:#182536!important;letter-spacing:-.55px;margin:0 0 4px!important}.header small{color:#78869a!important}
+.wrap{max-width:720px!important;padding:16px 14px 40px!important}
+.card{background:rgba(255,255,255,.96)!important;border:1px solid #e4e9ef!important;border-radius:22px!important;padding:17px!important;margin-bottom:14px!important;box-shadow:0 12px 32px rgba(15,23,42,.055),inset 0 1px 0 #fff!important}
+.section-title{font-size:12px!important;text-transform:uppercase;letter-spacing:.12em;color:#78869a!important;margin-bottom:8px!important}
+.mode-switch{background:#eef2f6!important;border:1px solid #e1e7ed!important;border-radius:16px!important;padding:4px!important;gap:4px!important}.mode-btn{border-radius:12px!important;padding:11px 14px!important;font-weight:750!important;color:#718096!important;background:transparent!important;box-shadow:none!important;border:0!important}.mode-btn.active{background:#fff!important;color:#244b70!important;box-shadow:0 5px 16px rgba(15,23,42,.10)!important}
+.tabs{position:sticky!important;top:0!important;z-index:30!important;background:rgba(244,246,248,.92)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:10px 2px!important;margin:0 -2px 12px!important;border-bottom:1px solid rgba(203,213,225,.65)!important;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs button{border-radius:999px!important;padding:9px 14px!important;border:1px solid #dde4eb!important;background:#fff!important;color:#607086!important;font-weight:700!important;box-shadow:0 3px 10px rgba(15,23,42,.035)!important}.tabs button.active{background:#315f8c!important;color:#fff!important;border-color:#315f8c!important;box-shadow:0 7px 18px rgba(49,95,140,.18)!important}
+.person-name{font-size:22px!important;font-weight:850!important;color:#182536!important;letter-spacing:-.35px}.daily{color:#64748b!important;margin-top:3px!important}.rate{color:#4776a4!important}
+.day{background:#f8fafc!important;border:1px solid #e2e8f0!important;border-radius:18px!important;padding:14px!important;margin-top:10px!important;box-shadow:inset 0 1px 0 #fff!important}.day label{font-weight:750!important;color:#26364a!important}.check{width:23px!important;height:23px!important;accent-color:#315f8c!important}.extra-title{color:#64748b!important}
+input[type="text"],input[type="number"],input[type="month"]{background:#fbfcfd!important;color:#1e293b!important;border:1px solid #dce3ea!important;border-radius:14px!important;padding:13px 14px!important;color-scheme:light!important;transition:.2s ease!important}input:focus{border-color:#7899b9!important;box-shadow:0 0 0 3px rgba(49,95,140,.10)!important}input[type="range"]{accent-color:#315f8c!important}
+.btn{border-radius:14px!important;padding:14px!important;font-weight:800!important;box-shadow:none!important;transition:transform .15s ease,filter .15s ease!important}.btn:active{transform:scale(.985)!important}.blue{background:linear-gradient(135deg,#3b6f9f,#2c577f)!important;box-shadow:0 8px 20px rgba(49,95,140,.16)!important}.green{background:linear-gradient(135deg,#3b9078,#2c725f)!important;box-shadow:0 8px 20px rgba(47,125,103,.14)!important}
+.nav-btn{border-radius:12px!important;border:1px solid #dce3ea!important;background:#f5f7fa!important;color:#315f8c!important}.trash{border-radius:12px!important;border:1px solid #ead9d9!important;background:#fff7f7!important;color:#a34d4d!important}.week-label{font-weight:800!important;color:#26364a!important}
+.total{color:#2f7d67!important;font-size:24px!important;letter-spacing:-.4px}.hint{color:#8491a3!important;line-height:1.45!important}.empty{color:#8491a3!important}.history-item{background:#f8fafc!important;border-color:#e2e8f0!important}.history-meta{color:#7c899b!important}.history-person{border-color:#e2e8f0!important}
+@media(max-width:480px){.header{padding-top:20px!important}.wrap{padding-left:10px!important;padding-right:10px!important}.card{border-radius:19px!important;padding:14px!important}.tabs{margin-left:-1px!important;margin-right:-1px!important}}
+
+    .history-share{margin-top:12px;padding:12px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;white-space:pre-wrap;font:600 14px/1.55 system-ui,-apple-system,sans-serif;color:#334155}
+    .copy-history-btn{width:100%;margin-top:10px;padding:11px 12px;border:1px solid #cbd5e1;border-radius:11px;background:#fff;color:#334155;font-weight:800;font-size:14px;cursor:pointer}
+    .copy-history-btn:active{transform:translateY(1px)}
+</style>
+
+  <style>
+  :root{--bg:#f4f6f8;--card:#ffffff;--card2:#f8fafc;--line:#e2e8f0;--text:#172033;--muted:#64748b;--blue:#315c8c;--blue2:#24486f;--green:#27835b;--green2:#1d6847;--shadow:#dfe4ea}
+  body{background:#f4f6f8;color:var(--text);padding-bottom:86px}
+  .header{background:linear-gradient(135deg,#fff,#eef3f8);color:#172033;box-shadow:0 8px 24px rgba(30,41,59,.08);border-bottom:1px solid #e2e8f0;border-radius:0 0 26px 26px}
+  .header small{color:#64748b}.card{box-shadow:0 8px 24px rgba(30,41,59,.07);border-color:#e5e9ef}.day{background:#f8fafc}.tabs{background:rgba(244,246,248,.96);box-shadow:0 8px 18px rgba(30,41,59,.08)}
+  .tab,.mode-btn{background:#fff;color:#334155}.nav-btn{background:#e8eef5;color:#315c8c}.trash{background:#fff5f5;border-color:#fee2e2;color:#b91c1c}
+  input[type=text],input[type=number],input[type=month]{background:#fff;color:#172033;border-color:#d8e0e8;color-scheme:light}.total{color:#27835b}.rate{color:#315c8c}
+  .app-page{display:none}.app-page.active{display:block}.bottom-nav{position:fixed;left:0;right:0;bottom:0;height:76px;background:rgba(255,255,255,.97);border-top:1px solid #e2e8f0;display:grid;grid-template-columns:repeat(3,1fr);z-index:3000;padding:6px 10px max(6px,env(safe-area-inset-bottom));box-shadow:0 -8px 25px rgba(30,41,59,.08)}
+  .bottom-nav button{border:0;background:transparent;color:#7b8794;font-weight:700;font-size:12px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.bottom-nav button .ico{font-size:23px;line-height:1}.bottom-nav button.active{color:#315c8c;background:#eef4fa}
+  .page-title{font-size:22px;font-weight:900;margin:8px 2px 2px}.page-sub{color:#64748b;margin:0 2px 14px;font-size:14px}.employee-list{margin-top:16px}.employee-mini{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #e8edf2}.employee-mini strong{display:block}.employee-mini small{color:#64748b}
   </style>
 </head>
 <body>
@@ -59,72 +105,38 @@
   </div>
 
   <main class="wrap">
-    <section id="installCard" class="card" style="display:none">
-      <div class="section-title">Instalar no celular</div>
-      <div class="hint">Instale o Controle Mensal na tela inicial e use como aplicativo.</div>
-      <button id="installBtn" class="btn green">📲 Instalar aplicativo</button>
-    </section>
-
-    <section class="card">
-      <div class="section-title">Mês do controle</div>
-      <input id="monthPicker" type="month" />
-      <div class="hint">Cada mês guarda seus próprios dias trabalhados e horas extras.</div>
-    </section>
-
-    <div id="tabs" class="tabs"></div>
-
-    <section id="personCard" class="card">
-      <div class="toprow">
-        <div>
-          <div id="personName" class="person-name"></div>
-          <div id="dailyValue" class="daily"></div>
-          <div id="overtimeValue" class="rate"></div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button id="editBtn" class="trash" title="Editar funcionário">✏️</button>
-          <button id="deleteBtn" class="trash" title="Excluir funcionário">🗑️</button>
-        </div>
-      </div>
-
-      <div id="days"></div>
-
-      <div class="row" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)">
-        <strong>Total do mês</strong>
-        <span id="personTotal" class="total">R$ 0,00</span>
-      </div>
-    </section>
-
-    <section class="card">
-      <div id="formTitle" class="section-title">Novo funcionário</div>
-      <input id="newName" type="text" placeholder="Nome" autocomplete="off" />
-      <input id="newDaily" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Valor da diária" />
-      <input id="newOvertime" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Valor da hora extra" />
-      <button id="addBtn" class="btn blue">+ Cadastrar</button>
-      <button id="cancelEditBtn" class="btn" style="display:none;background:#475569">Cancelar edição</button>
-      <div class="hint">Nome, diária e hora extra ficam salvos para cada funcionário.</div>
-    </section>
-
-    <section class="card">
-      <div class="row">
-        <strong>Total geral do mês</strong>
-        <span id="generalTotal" class="total">R$ 0,00</span>
-      </div>
-      <button id="payBtn" class="btn green">💵 PAGAR MÊS</button>
-      <div class="hint">Ao confirmar, zera somente o mês selecionado. Os funcionários continuam cadastrados.</div>
-    </section>
+    <div id="pageControl" class="app-page active">
+      <div class="page-title">Controle</div><div class="page-sub">Acompanhe dias, horas extras e valores.</div>
+      <section class="card"><div class="section-title">Modo de controle</div><div class="mode-switch"><button id="monthlyModeBtn" class="mode-btn active">Mensal</button><button id="weeklyModeBtn" class="mode-btn">Semanal</button></div></section>
+      <section id="monthControl" class="card"><div class="section-title">Mês do controle</div><input id="monthPicker" type="month" /><div class="hint">Cada mês guarda seus próprios lançamentos.</div></section>
+      <section id="weekControl" class="card hidden"><div class="section-title">Semana do controle</div><div class="week-nav"><button id="prevWeekBtn" class="nav-btn">‹</button><div id="weekLabel" class="week-label"></div><button id="nextWeekBtn" class="nav-btn">›</button></div><button id="currentWeekBtn" class="btn blue">Ir para semana atual</button></section>
+      <div id="tabs" class="tabs"></div>
+      <section id="personCard" class="card"><div class="toprow"><div><div id="personName" class="person-name"></div><div id="dailyValue" class="daily"></div><div id="overtimeValue" class="rate"></div></div></div><div id="days"></div><div class="row" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line)"><strong id="personTotalLabel">Total do mês</strong><span id="personTotal" class="total">R$ 0,00</span></div></section>
+      <section class="card"><div class="row"><strong id="generalTotalLabel">Total geral do mês</strong><span id="generalTotal" class="total">R$ 0,00</span></div><button id="payBtn" class="btn green">💵 PAGAR MÊS</button><div id="payHint" class="hint"></div></section>
+    </div>
+    <div id="pageEmployees" class="app-page"><div class="page-title">Funcionários</div><div class="page-sub">Cadastre e edite sua equipe.</div><section class="card"><div id="formTitle" class="section-title">Novo funcionário</div><input id="newName" type="text" placeholder="Nome" autocomplete="off" /><input id="newDaily" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Valor da diária" /><input id="newOvertime" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Valor da hora extra" /><button id="addBtn" class="btn blue">+ Cadastrar</button><button id="cancelEditBtn" class="btn" style="display:none;background:#64748b">Cancelar edição</button><div class="hint">Nome, diária e hora extra ficam salvos no aparelho.</div></section><section class="card"><div class="section-title">Equipe cadastrada</div><div id="employeeList" class="employee-list"></div></section></div>
+    <div id="pageHistory" class="app-page"><div class="page-title">Histórico</div><div class="page-sub">Consulte os fechamentos e copie os valores.</div><section class="card"><div class="section-title">📄 Histórico de pagamentos</div><div id="paymentHistory"></div><button id="clearHistoryBtn" class="btn" style="background:#64748b">Limpar histórico</button><div class="hint">Os pagamentos permanecem registrados após o fechamento.</div></section></div>
   </main>
+  <nav class="bottom-nav"><button class="active" data-page="pageControl"><span class="ico">📅</span><span>Controle</span></button><button data-page="pageEmployees"><span class="ico">👤</span><span>Funcionários</span></button><button data-page="pageHistory"><span class="ico">📄</span><span>Histórico</span></button></nav>
+
 
 <script>
   const STORAGE_KEY = 'controle_mensal_v1';
   const OLD_STORAGE_KEY = 'controle_semanal_v3';
   let editingIndex = null;
+  const MODE_KEY = 'controle_ultimo_modo_v1';
+  const HISTORY_KEY = 'controle_historico_pagamentos_v1';
+  let viewMode = localStorage.getItem(MODE_KEY) === 'weekly' ? 'weekly' : 'monthly';
+  let paymentHistory = [];
+  try{ paymentHistory = JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }catch(e){ paymentHistory = []; }
 
   const $ = id => document.getElementById(id);
   const money = value => Number(value).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const pad = n => String(n).padStart(2,'0');
 
   function currentMonthKey(){
     const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
   }
 
   function daysInMonth(monthKey){
@@ -132,9 +144,29 @@
     return new Date(y,m,0).getDate();
   }
 
-  function weekdayName(monthKey, day){
-    const [y,m] = monthKey.split('-').map(Number);
-    return new Intl.DateTimeFormat('pt-BR',{weekday:'short'}).format(new Date(y,m-1,day)).replace('.','');
+  function startOfWeek(date){
+    const d = new Date(date.getFullYear(),date.getMonth(),date.getDate());
+    const day = d.getDay();
+    d.setDate(d.getDate() + (day===0 ? -6 : 1-day));
+    return d;
+  }
+
+  function addDays(date,n){
+    const d = new Date(date);
+    d.setDate(d.getDate()+n);
+    return d;
+  }
+
+  function monthKeyFromDate(date){
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}`;
+  }
+
+  function formatShortDate(date){
+    return `${pad(date.getDate())}/${pad(date.getMonth()+1)}`;
+  }
+
+  function weekdayName(date){
+    return new Intl.DateTimeFormat('pt-BR',{weekday:'short'}).format(date).replace('.','');
   }
 
   function makeEmployee(name,daily,overtimeRate=40){
@@ -147,7 +179,6 @@
     if(Array.isArray(saved)) employees = saved;
   }catch(e){}
 
-  // Se for a primeira vez na versão mensal, reaproveita os funcionários da versão semanal.
   if(!employees.length){
     try{
       const old = JSON.parse(localStorage.getItem(OLD_STORAGE_KEY));
@@ -175,14 +206,15 @@
 
   let selected = 0;
   let selectedMonth = currentMonthKey();
+  let selectedWeekStart = startOfWeek(new Date());
   $('monthPicker').value = selectedMonth;
 
-  function ensureMonth(emp){
-    const count = daysInMonth(selectedMonth);
-    if(!emp.months[selectedMonth]){
-      emp.months[selectedMonth] = {days:Array(count).fill(false),hours:Array(count).fill(0)};
+  function ensureMonth(emp, monthKey=selectedMonth){
+    const count = daysInMonth(monthKey);
+    if(!emp.months[monthKey]){
+      emp.months[monthKey] = {days:Array(count).fill(false),hours:Array(count).fill(0)};
     }
-    const data = emp.months[selectedMonth];
+    const data = emp.months[monthKey];
     if(!Array.isArray(data.days)) data.days = [];
     if(!Array.isArray(data.hours)) data.hours = [];
     while(data.days.length < count) data.days.push(false);
@@ -192,21 +224,44 @@
     return data;
   }
 
-  function save(){
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(employees));
+  function getDaySlot(emp,date){
+    const monthKey = monthKeyFromDate(date);
+    const data = ensureMonth(emp,monthKey);
+    return {data,index:date.getDate()-1};
   }
 
-  function total(emp){
-    const data = ensureMonth(emp);
+  function save(){
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(employees));
+    localStorage.setItem(MODE_KEY,viewMode);
+    localStorage.setItem(HISTORY_KEY,JSON.stringify(paymentHistory));
+  }
+
+  function monthlyTotal(emp){
+    const data = ensureMonth(emp,selectedMonth);
     const dailyTotal = data.days.filter(Boolean).length * Number(emp.daily||0);
     const overtimeTotal = data.hours.reduce((sum,h)=>sum+Number(h||0),0) * Number(emp.overtimeRate||0);
     return dailyTotal + overtimeTotal;
   }
 
+  function weeklyTotal(emp){
+    let workedDays = 0, extraHours = 0;
+    for(let i=0;i<7;i++){
+      const d = addDays(selectedWeekStart,i);
+      const {data,index} = getDaySlot(emp,d);
+      if(data.days[index]) workedDays++;
+      extraHours += Number(data.hours[index]||0);
+    }
+    return workedDays*Number(emp.daily||0) + extraHours*Number(emp.overtimeRate||0);
+  }
+
+  function activeTotal(emp){
+    return viewMode==='monthly' ? monthlyTotal(emp) : weeklyTotal(emp);
+  }
+
   function updateTotals(){
     if(!employees.length) return;
-    $('personTotal').textContent = money(total(employees[selected]));
-    $('generalTotal').textContent = money(employees.reduce((sum,e)=>sum+total(e),0));
+    $('personTotal').textContent = money(activeTotal(employees[selected]));
+    $('generalTotal').textContent = money(employees.reduce((sum,e)=>sum+activeTotal(e),0));
   }
 
   function renderTabs(){
@@ -221,128 +276,177 @@
     });
   }
 
+  function buildDayCard(emp,date,data,index){
+    const card = document.createElement('div');
+    card.className = 'day';
+
+    const main = document.createElement('div');
+    main.className = 'day-main';
+
+    const check = document.createElement('input');
+    check.type = 'checkbox';
+    check.className = 'check';
+    check.checked = !!data.days[index];
+    check.onchange = ()=>{
+      data.days[index] = check.checked;
+      save();
+      updateTotals();
+    };
+
+    const label = document.createElement('label');
+    label.textContent = `Dia ${date.getDate()} • ${weekdayName(date)}`;
+
+    const hoursBadge = document.createElement('strong');
+    hoursBadge.textContent = `${data.hours[index] || 0}h extra`;
+
+    main.append(check,label,hoursBadge);
+
+    const extraWrap = document.createElement('div');
+    extraWrap.className = 'extra-wrap';
+
+    const extraTitle = document.createElement('div');
+    extraTitle.className = 'extra-title';
+    extraTitle.innerHTML = `<span>Horas extras</span><span>${money((data.hours[index]||0)*Number(emp.overtimeRate||0))}</span>`;
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '12';
+    slider.step = '1';
+    slider.value = data.hours[index] || 0;
+
+    // Mantido: ignora toque simples e só muda com arraste mínimo de 15 px.
+    let dragStartX = null;
+    let dragStartValue = Number(slider.value);
+    let draggingExtra = false;
+
+    const beginExtraDrag = clientX => {
+      dragStartX = clientX;
+      dragStartValue = Number(slider.value);
+      draggingExtra = false;
+    };
+
+    const moveExtraDrag = clientX => {
+      if(dragStartX===null) return;
+      const dx = clientX-dragStartX;
+      if(!draggingExtra && Math.abs(dx)<15) return;
+      draggingExtra = true;
+
+      const rect = slider.getBoundingClientRect();
+      const usableWidth = Math.max(rect.width,1);
+      const min = Number(slider.min), max = Number(slider.max), step = Number(slider.step)||1;
+      let value = dragStartValue + (dx/usableWidth)*(max-min);
+      value = Math.round(value/step)*step;
+      value = Math.max(min,Math.min(max,value));
+
+      slider.value = value;
+      data.hours[index] = value;
+      hoursBadge.textContent = `${value}h extra`;
+      extraTitle.children[1].textContent = money(value*Number(emp.overtimeRate||0));
+      updateTotals();
+    };
+
+    const endExtraDrag = () => {
+      if(dragStartX===null) return;
+      if(draggingExtra) save();
+      else slider.value = data.hours[index] || 0;
+      dragStartX = null;
+      draggingExtra = false;
+    };
+
+    slider.addEventListener('pointerdown',e=>{
+      beginExtraDrag(e.clientX);
+      slider.setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    });
+    slider.addEventListener('pointermove',e=>{
+      if(dragStartX===null) return;
+      moveExtraDrag(e.clientX);
+      e.preventDefault();
+    });
+    slider.addEventListener('pointerup',e=>{
+      endExtraDrag();
+      slider.releasePointerCapture?.(e.pointerId);
+      e.preventDefault();
+    });
+    slider.addEventListener('pointercancel',endExtraDrag);
+    slider.addEventListener('click',e=>e.preventDefault());
+
+    extraWrap.append(extraTitle,slider);
+    card.append(main,extraWrap);
+    return card;
+  }
+
   function renderDays(emp){
-    const data = ensureMonth(emp);
     const box = $('days');
     box.innerHTML = '';
 
-    data.days.forEach((worked,index)=>{
-      const dayNumber = index + 1;
-      const card = document.createElement('div');
-      card.className = 'day';
-
-      const main = document.createElement('div');
-      main.className = 'day-main';
-
-      const check = document.createElement('input');
-      check.type = 'checkbox';
-      check.className = 'check';
-      check.checked = !!worked;
-      check.onchange = ()=>{
-        data.days[index] = check.checked;
-        save();
-        updateTotals();
-      };
-
-      const label = document.createElement('label');
-      label.textContent = `Dia ${dayNumber} • ${weekdayName(selectedMonth,dayNumber)}`;
-
-      const hoursBadge = document.createElement('strong');
-      hoursBadge.textContent = `${data.hours[index] || 0}h extra`;
-
-      main.append(check,label,hoursBadge);
-
-      const extraWrap = document.createElement('div');
-      extraWrap.className = 'extra-wrap';
-
-      const extraTitle = document.createElement('div');
-      extraTitle.className = 'extra-title';
-      extraTitle.innerHTML = `<span>Horas extras</span><span>${money((data.hours[index]||0)*Number(emp.overtimeRate||0))}</span>`;
-
-      const slider = document.createElement('input');
-      slider.type = 'range';
-      slider.min = '0';
-      slider.max = '12';
-      slider.step = '1';
-      slider.value = data.hours[index] || 0;
-
-      // Mantido: só muda após um arraste real de pelo menos 15 pixels.
-      // Toques simples no trilho são ignorados.
-      let dragStartX = null;
-      let dragStartValue = Number(slider.value);
-      let draggingExtra = false;
-
-      const beginExtraDrag = (clientX) => {
-        dragStartX = clientX;
-        dragStartValue = Number(slider.value);
-        draggingExtra = false;
-      };
-
-      const moveExtraDrag = (clientX) => {
-        if (dragStartX === null) return;
-        const dx = clientX - dragStartX;
-        if (!draggingExtra && Math.abs(dx) < 15) return;
-        draggingExtra = true;
-
-        const rect = slider.getBoundingClientRect();
-        const usableWidth = Math.max(rect.width,1);
-        const min = Number(slider.min);
-        const max = Number(slider.max);
-        const step = Number(slider.step)||1;
-        const delta = (dx/usableWidth)*(max-min);
-
-        let value = dragStartValue + delta;
-        value = Math.round(value/step)*step;
-        value = Math.max(min,Math.min(max,value));
-
-        slider.value = value;
-        data.hours[index] = value;
-        hoursBadge.textContent = `${value}h extra`;
-        extraTitle.children[1].textContent = money(value*Number(emp.overtimeRate||0));
-        updateTotals();
-      };
-
-      const endExtraDrag = () => {
-        if(dragStartX===null) return;
-        if(draggingExtra) save();
-        else slider.value = data.hours[index] || 0;
-        dragStartX = null;
-        draggingExtra = false;
-      };
-
-      slider.addEventListener('pointerdown',(e)=>{
-        beginExtraDrag(e.clientX);
-        slider.setPointerCapture?.(e.pointerId);
-        e.preventDefault();
+    if(viewMode==='monthly'){
+      const data = ensureMonth(emp,selectedMonth);
+      const [y,m] = selectedMonth.split('-').map(Number);
+      data.days.forEach((_,index)=>{
+        const date = new Date(y,m-1,index+1);
+        box.appendChild(buildDayCard(emp,date,data,index));
       });
-      slider.addEventListener('pointermove',(e)=>{
-        if(dragStartX===null) return;
-        moveExtraDrag(e.clientX);
-        e.preventDefault();
-      });
-      slider.addEventListener('pointerup',(e)=>{
-        endExtraDrag();
-        slider.releasePointerCapture?.(e.pointerId);
-        e.preventDefault();
-      });
-      slider.addEventListener('pointercancel',endExtraDrag);
-      slider.addEventListener('click',(e)=>e.preventDefault());
+    }else{
+      for(let i=0;i<7;i++){
+        const date = addDays(selectedWeekStart,i);
+        const {data,index} = getDaySlot(emp,date);
+        box.appendChild(buildDayCard(emp,date,data,index));
+      }
+    }
+  }
 
-      extraWrap.append(extraTitle,slider);
-      card.append(main,extraWrap);
-      box.appendChild(card);
-    });
+  function updateModeUI(){
+    const monthly = viewMode==='monthly';
+    $('monthlyModeBtn').classList.toggle('active',monthly);
+    $('weeklyModeBtn').classList.toggle('active',!monthly);
+    $('monthControl').classList.toggle('hidden',!monthly);
+    $('weekControl').classList.toggle('hidden',monthly);
+    $('personTotalLabel').textContent = monthly ? 'Total do mês' : 'Total da semana';
+    $('generalTotalLabel').textContent = monthly ? 'Total geral do mês' : 'Total geral da semana';
+    $('payBtn').textContent = monthly ? '💵 PAGAR MÊS' : '💵 PAGAR SEMANA';
+    $('payHint').textContent = monthly
+      ? 'Ao confirmar, zera somente o mês selecionado. Os funcionários continuam cadastrados.'
+      : 'Ao confirmar, zera todos os lançamentos da semana selecionada para todos os funcionários.';
+    const end = addDays(selectedWeekStart,6);
+    $('weekLabel').textContent = `${formatShortDate(selectedWeekStart)} a ${formatShortDate(end)} • ${end.getFullYear()}`;
+  }
+
+  function historyText(h){
+    const lines = h.people.map(p=>`${p.name} — ${money(p.value)}`);
+    if(h.mode==='weekly') return `VALOR SEMANA\n\n${lines.join('\n')}`;
+    return `VALOR MÊS\n\n${lines.join('\n')}`;
+  }
+
+  async function copyHistory(index,btn){
+    const h = paymentHistory[index];
+    if(!h) return;
+    const text = historyText(h);
+    try{
+      await navigator.clipboard.writeText(text);
+    }catch(e){
+      const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    }
+    const old=btn.textContent; btn.textContent='✓ Copiado!'; setTimeout(()=>btn.textContent=old,1600);
+  }
+
+  function renderHistory(){
+    const box = $('paymentHistory');
+    if(!paymentHistory.length){ box.innerHTML='<div class="empty">Nenhum pagamento registrado.</div>'; return; }
+    box.innerHTML = paymentHistory.map((h,index)=>({h,index})).reverse().map(({h,index})=>`<div class="history-item"><div class="history-head"><span>${h.mode==='monthly'?'Mensal':'Semanal'}</span><span>${money(h.total)}</span></div><div class="history-meta">${h.period} • pago em ${h.paidAt}</div>${h.people.map(p=>`<div class="history-person"><span>${p.name}</span><strong>${money(p.value)}</strong></div>`).join('')}<div class="history-share">${historyText(h)}</div><button class="copy-history-btn" onclick="copyHistory(${index},this)">📋 Copiar valores</button></div>`).join('');
   }
 
   function render(){
     renderTabs();
+    updateModeUI();
+    renderHistory();
     if(!employees.length){
       $('personCard').innerHTML = '<div class="empty">Nenhum funcionário cadastrado.</div>';
       $('generalTotal').textContent = money(0);
       return;
     }
     if(selected>=employees.length) selected=employees.length-1;
-
     const emp = employees[selected];
     $('personName').textContent = emp.name;
     $('dailyValue').textContent = `${money(emp.daily)} / dia`;
@@ -361,17 +465,23 @@
     $('newOvertime').value = '';
   }
 
+  $('monthlyModeBtn').onclick = ()=>{viewMode='monthly';save();render();};
+  $('weeklyModeBtn').onclick = ()=>{viewMode='weekly';save();render();};
+
   $('monthPicker').onchange = ()=>{
     if(!$('monthPicker').value) return;
     selectedMonth = $('monthPicker').value;
     render();
   };
 
+  $('prevWeekBtn').onclick = ()=>{selectedWeekStart=addDays(selectedWeekStart,-7);render();};
+  $('nextWeekBtn').onclick = ()=>{selectedWeekStart=addDays(selectedWeekStart,7);render();};
+  $('currentWeekBtn').onclick = ()=>{selectedWeekStart=startOfWeek(new Date());render();};
+
   $('addBtn').onclick = ()=>{
     const name = $('newName').value.trim();
     const daily = Number(String($('newDaily').value).replace(',','.'));
     const overtimeRate = Number(String($('newOvertime').value).replace(',','.'));
-
     if(!name){alert('Digite o nome do funcionário.');return;}
     if(!(daily>0)){alert('Digite um valor válido para a diária.');return;}
     if(!(overtimeRate>=0)){alert('Digite um valor válido para a hora extra.');return;}
@@ -386,15 +496,14 @@
       emp.overtimeRate = overtimeRate;
       selected = editingIndex;
     }
-    save();
-    resetForm();
-    render();
+    save(); resetForm(); render();
   };
 
-  $('editBtn').onclick = ()=>{
-    if(!employees.length) return;
-    const emp = employees[selected];
-    editingIndex = selected;
+  function editEmployee(i){
+    if(!employees[i]) return;
+    const emp = employees[i];
+    selected = i;
+    editingIndex = i;
     $('formTitle').textContent = 'Editar funcionário';
     $('addBtn').textContent = 'Salvar alterações';
     $('cancelEditBtn').style.display = 'block';
@@ -402,76 +511,86 @@
     $('newDaily').value = emp.daily;
     $('newOvertime').value = emp.overtimeRate ?? 40;
     $('newName').focus();
-  };
+  }
 
   $('cancelEditBtn').onclick = resetForm;
 
-  $('deleteBtn').onclick = ()=>{
-    if(!employees.length) return;
-    const emp = employees[selected];
+  function deleteEmployee(i){
+    if(!employees[i]) return;
+    const emp = employees[i];
     if(!confirm(`Excluir o cadastro de ${emp.name}?`)) return;
-    employees.splice(selected,1);
+    employees.splice(i,1);
     if(selected>=employees.length) selected=Math.max(0,employees.length-1);
-    save();
-    location.reload();
-  };
+    save(); resetForm(); render(); renderEmployeeList();
+  }
 
   $('payBtn').onclick = ()=>{
     if(!employees.length) return;
-    const value = employees.reduce((sum,e)=>sum+total(e),0);
-    const label = new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(
-      new Date(Number(selectedMonth.slice(0,4)),Number(selectedMonth.slice(5,7))-1,1)
-    );
 
-    if(!confirm(`Confirmar pagamento de ${money(value)} referente a ${label} e zerar somente esse mês?`)) return;
+    if(viewMode==='monthly'){
+      const value = employees.reduce((sum,e)=>sum+monthlyTotal(e),0);
+      const label = new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}).format(
+        new Date(Number(selectedMonth.slice(0,4)),Number(selectedMonth.slice(5,7))-1,1)
+      );
+      if(!confirm(`Confirmar pagamento de ${money(value)} referente a ${label} e zerar somente esse mês?`)) return;
+      const people = employees.map(e=>({name:e.name,value:monthlyTotal(e)})).filter(p=>p.value>0);
+      if(people.length) paymentHistory.push({mode:'monthly',period:label,total:value,paidAt:new Date().toLocaleString('pt-BR'),people});
+
+      employees.forEach(emp=>{
+        const count = daysInMonth(selectedMonth);
+        emp.months[selectedMonth] = {days:Array(count).fill(false),hours:Array(count).fill(0)};
+      });
+      save(); render();
+      alert(`Pagamento de ${label} confirmado. O mês foi zerado.`);
+      return;
+    }
+
+    const value = employees.reduce((sum,e)=>sum+weeklyTotal(e),0);
+    const end = addDays(selectedWeekStart,6);
+    const label = `${formatShortDate(selectedWeekStart)} a ${formatShortDate(end)}`;
+
+    if(!confirm(`Confirmar pagamento de ${money(value)} da semana ${label} e zerar todos os lançamentos dessa semana?`)) return;
+    const people = employees.map(e=>({name:e.name,value:weeklyTotal(e)})).filter(p=>p.value>0);
+    if(people.length) paymentHistory.push({mode:'weekly',period:label,total:value,paidAt:new Date().toLocaleString('pt-BR'),people});
 
     employees.forEach(emp=>{
-      const count = daysInMonth(selectedMonth);
-      emp.months[selectedMonth] = {days:Array(count).fill(false),hours:Array(count).fill(0)};
+      for(let i=0;i<7;i++){
+        const d = addDays(selectedWeekStart,i);
+        const {data,index} = getDaySlot(emp,d);
+        data.days[index] = false;
+        data.hours[index] = 0;
+      }
     });
 
-    save();
-    render();
-    alert(`Pagamento de ${label} confirmado. O mês foi zerado.`);
+    save(); render();
+    alert(`Pagamento da semana ${label} confirmado. A semana foi zerada.`);
   };
 
-
-  // Instalação do PWA pelo navegador.
-  let deferredInstallPrompt = null;
-
-  window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-    const card = $('installCard');
-    if (card) card.style.display = 'block';
-  });
-
-  const installBtn = $('installBtn');
-  if (installBtn) {
-    installBtn.onclick = async () => {
-      if (!deferredInstallPrompt) return;
-      deferredInstallPrompt.prompt();
-      await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt = null;
-      $('installCard').style.display = 'none';
-    };
-  }
-
-  window.addEventListener('appinstalled', () => {
-    const card = $('installCard');
-    if (card) card.style.display = 'none';
-  });
-
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./service-worker.js').catch((err) => {
-        console.warn('Service Worker não registrado:', err);
-      });
-    });
-  }
+  $('clearHistoryBtn').onclick = ()=>{
+    if(!paymentHistory.length) return;
+    if(!confirm('Apagar todo o histórico de pagamentos?')) return;
+    paymentHistory=[]; save(); render();
+  };
 
   save();
   render();
+
+  function renderEmployeeList(){
+    const box=document.getElementById('employeeList'); if(!box) return; box.innerHTML='';
+    if(!employees.length){box.innerHTML='<div class="empty">Nenhum funcionário cadastrado.</div>';return;}
+    employees.forEach((emp,i)=>{const row=document.createElement('div');row.className='employee-mini';row.innerHTML=`<div><strong>${emp.name}</strong><small>${money(emp.daily)} / dia • HE ${money(emp.overtimeRate||0)}/h</small></div><div style="display:flex;gap:6px"><button class="mode-btn edit-employee" style="padding:8px 12px" title="Editar funcionário" aria-label="Editar funcionário">✏️</button><button class="trash delete-employee" title="Excluir funcionário">🗑️</button></div>`;row.querySelector('.edit-employee').onclick=()=>editEmployee(i);row.querySelector('.delete-employee').onclick=()=>deleteEmployee(i);box.appendChild(row);});
+  }
+  document.querySelectorAll('.bottom-nav button').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.app-page').forEach(p=>p.classList.remove('active'));document.getElementById(btn.dataset.page).classList.add('active');if(btn.dataset.page==='pageEmployees')renderEmployeeList();if(btn.dataset.page==='pageHistory' && typeof renderPaymentHistory==='function')renderPaymentHistory();window.scrollTo({top:0,behavior:'smooth'});}));
+  const _render=render; render=function(){_render();renderEmployeeList();}; renderEmployeeList();
 </script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+
 </body>
 </html>
